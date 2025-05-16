@@ -1,12 +1,10 @@
 name: Unit Test
 
 on:
+  pull_request:
   push:
     branches:
       - main
-
-permissions:
-  id-token: write  # This is required to handle authentication for upload-private-artifact-action
 
 jobs:
   unit-test:
