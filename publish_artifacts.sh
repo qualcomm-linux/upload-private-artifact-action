@@ -8,5 +8,5 @@ if ! aws sts get-caller-identity >/dev/null 2>&1; then
 fi
 
 # Step 2: Upload artifacts
-aws s3 cp "$INPUT_PATH" "s3://$INPUT_S3_BUCKET/$INPUT_DESTINATION" --recursive
+aws s3 cp "$INPUT_PATH" "s3://$INPUT_S3_BUCKET/$INPUT_DESTINATION" --recursive --progress-frequency 30
 
