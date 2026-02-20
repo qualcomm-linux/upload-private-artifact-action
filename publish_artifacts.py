@@ -94,7 +94,7 @@ def main(num_threads: int, artifacts_dir: str, base_url: str, output_file: str):
     paths = get_files_to_publish(artifacts_dir)
     print(f"= Found {len(paths)} files to publish to {base_url}", flush=True)
 
-    failed = False
+    retry_work = []
     work = [(f"{base_url}{x}", artifacts_dir, x) for x in paths]
     with Pool(num_threads) as p:
         results = p.imap_unordered(upload_file, work)
@@ -103,7 +103,28 @@ def main(num_threads: int, artifacts_dir: str, base_url: str, output_file: str):
             print(f"= {i+1} of {len(work)} - {name}", flush=True)
             if err:
                 print(f"|-> ERROR: {err}", flush=True)
-                failed = True
+                retry_work.append(name)
+
+    failure_ratio = len(retry_work) / len(paths)
+    if failure_ratio > 0.5:
+        print(
+            f"= Too many failures ({len(retry_work)} of {len(paths)} - {failure_ratio:.2%}). Aborting.",
+            flush=True,
+        )
+        sys.exit(1)
+
+    failed = False
+    if retry_work:
+        print(f"= Failed to publish {len(retry_work)} files. Retrying...", flush=True)
+        work = [(f"{base_url}{x}", artifacts_dir, x) for x in retry_work]
+        with Pool(num_threads) as p:
+            results = p.imap_unordered(upload_file, work)
+            for i, res in enumerate(results):
+                name, err = res
+                print(f"= {i+1} of {len(work)} - {name} - RETRY loop", flush=True)
+                if err:
+                    print(f"|-> ERROR: {err}", flush=True)
+                    failed = True
 
     if failed:
         sys.exit(1)
