@@ -11,6 +11,13 @@ inputs:
   s3_bucket:
     description: S3 bucket name
     required: true
+  fileserver_url:
+    description: URL used by clients to download content from the file server
+    required: false
+    default: "https://qli-prod-artifacts.qualcomm.com"
+outputs:
+  url:
+    description: "URL where objects are available at"
 
 runs:
   using: docker
